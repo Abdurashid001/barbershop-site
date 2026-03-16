@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Панель администратора - 333 Barbershop</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+    
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Oswald:wght@600&display=swap" rel="stylesheet">
+    
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .dashboard-header { background-color: #343a40; color: #fff; padding: 20px; text-align: center; }
+        .card { margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .table-responsive { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <h2><i class="fa fa-cut me-3"></i>Панель администратора</h2>
+        <a href="index.html" class="btn btn-outline-light">На сайт</a>
+    </div>
+
+    <div class="container-fluid py-5">
+        <div class="row px-lg-5">
+            <!-- Зарегистрированные пользователи -->
+            <div class="col-lg-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0 text-white">Очередь (Записи)</h4>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="bg-dark text-white sticky-top">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Имя & Телефон</th>
+                                    <th>Услуга</th>
+                                    <th>Дата и Время</th>
+                                    <th>Статус</th>
+                                    <th>Оформлено</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTableBody">
+                                <tr><td colspan="6" class="text-center">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0 text-white">Зарегистрированные пользователи</h4>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="bg-dark text-white sticky-top">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Имя</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="3" class="text-center">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Обращения / Контакты -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header bg-secondary text-primary">
+                        <h4 class="mb-0">Заявки и Обращения</h4>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="bg-dark text-white sticky-top">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Дата</th>
+                                    <th>Имя & Email</th>
+                                    <th>Тема</th>
+                                    <th>Сообщение</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactsTableBody">
+                                <tr><td colspan="5" class="text-center">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load users
+            try {
+                const resUsers = await fetch('/api/admin/users');
+                const users = await resUsers.json();
+                const usersBody = document.getElementById('usersTableBody');
+                if (users.length === 0) {
+                    usersBody.innerHTML = '<tr><td colspan="3" class="text-center">Нет пользователей</td></tr>';
+                } else {
+                    usersBody.innerHTML = users.map(u => `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>${u.name}</td>
+                            <td>${u.email}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="3" class="text-danger text-center">Ошибка загрузки</td></tr>';
+            }
+
+            // Load contacts
+            try {
+                const resContacts = await fetch('/api/admin/contacts');
+                const contacts = await resContacts.json();
+                const contactsBody = document.getElementById('contactsTableBody');
+                if (contacts.length === 0) {
+                    contactsBody.innerHTML = '<tr><td colspan="5" class="text-center">Нет обращений</td></tr>';
+                } else {
+                    contactsBody.innerHTML = contacts.map(c => `
+                        <tr>
+                            <td>${c.id}</td>
+                            <td>${new Date(c.date).toLocaleString()}</td>
+                            <td><strong>${c.name}</strong><br><small>${c.email}</small></td>
+                            <td><span class="badge bg-primary text-dark">${c.subject}</span></td>
+                            <td>${c.message}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('contactsTableBody').innerHTML = '<tr><td colspan="5" class="text-danger text-center">Ошибка загрузки</td></tr>';
+            }
+
+            // Load bookings
+            try {
+                const resBookings = await fetch('/api/admin/bookings');
+                const bookings = await resBookings.json();
+                const bookingsBody = document.getElementById('bookingsTableBody');
+                if (bookings.length === 0) {
+                    bookingsBody.innerHTML = '<tr><td colspan="6" class="text-center">Нет записей в очереди</td></tr>';
+                } else {
+                    bookingsBody.innerHTML = bookings.map(b => `
+                        <tr>
+                            <td>${b.id}</td>
+                            <td><strong>${b.name}</strong><br><small>${b.phone}</small></td>
+                            <td><span class="badge bg-info text-dark">${b.service_type}</span></td>
+                            <td>${b.booking_date} <br> <strong>${b.booking_time}</strong></td>
+                            <td><span class="badge bg-warning text-dark">${b.status}</span></td>
+                            <td>${new Date(b.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('bookingsTableBody').innerHTML = '<tr><td colspan="6" class="text-danger text-center">Ошибка загрузки записей</td></tr>';
+            }
+        });
+    </script>
+</body>
+</html>
